@@ -1,5 +1,7 @@
 import pandas as pd, numpy as np, re
 from joblib import load
+import os.path
+import os
 
 def AlterarGastos(dataframe):
     dataframe['Gasto'] = dataframe['Gasto'].apply(lambda x: float(re.sub(r'KWh$', '', x).replace(',', '.')) if isinstance(x, str) else x)
@@ -8,14 +10,14 @@ def AlterarGastos(dataframe):
 def AcharAnomalias(csvfile):
     
     # Lendo arquivos CSV
-    df1 = AlterarGastos(pd.read_csv('../Files/PresetArquivoTrain.csv', delimiter=';'))
-    df3 = AlterarGastos(pd.read_csv(csvfile, delimiter=';'))
+    df1 = AlterarGastos(pd.read_csv('Files/PresetArquivoTrain.CSV', delimiter=';'))
+    df3 = AlterarGastos(csvfile)
 
     # Agrupando dados por eletrodoméstico e computando a média de gastos
     df1_grouped = df1.groupby(['Eletrodomestico']).mean()
 
     #Carregando modelo
-    model = load('../Model/clusterbrain.joblib')
+    model = load('Model/clusterbrain.joblib')
 
     # Prevendo os clusters dos valores médios dos gastos
     df1_grouped['cluster'] = model.predict(df1_grouped[['Gasto']])
