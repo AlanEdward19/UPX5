@@ -1,8 +1,8 @@
 from sklearn.ensemble import IsolationForest
 from datetime import datetime, timedelta
 from matplotlib import pyplot as plt
-import matplotlib.dates as mdates
 import pandas as pd
+import numpy as np
 
 def corrigir_diferenca_tempo(dataframe):
     dataframe['datetime'] = pd.to_datetime(dataframe['time'], unit='s')
@@ -22,26 +22,21 @@ def timestamp_para_datahora(timestamp):
     return datahora
 
 def merge_dataframe(df, group_size=60):
-    df_merged = pd.DataFrame()
+    df_grouped = df.groupby(df.index // group_size).first()
 
-    for i in range(0, len(df), group_size):
-        df_group = df.iloc[i:i+group_size,:]
+    for col in df.columns:
+        if col == 'datetime':
+            df_grouped[col] = df_grouped[col].apply(lambda x: x.replace(minute=0, second=0))
+        else:
+            col_values = np.zeros(len(df_grouped))
+            col_values[0] = df[col].iloc[0]
 
-        for col in df_group.columns:
-            if col == 'datetime':
-                col_value = df_group[col].iloc[0]
-                col_value = col_value.replace(minute=0, second=0)
-            else:
-                col_value = df_group[col].iloc[0]
-                for j in range(1, len(df_group)):
-                    if df_group[col].iloc[j] > col_value:
-                        col_value += df_group[col].iloc[j] - col_value
-                    elif df_group[col].iloc[j] < col_value:
-                        col_value -= col_value - df_group[col].iloc[j]
+            for i in range(1, len(df_grouped)):
+                col_values[i] = col_values[i-1] + df[col].iloc[i*group_size] - df[col].iloc[(i-1)*group_size]
 
-            df_merged.loc[i//group_size, col] = col_value
+            df_grouped[col] = col_values
 
-    return df_merged
+    return df_grouped
 
 def encontrar_valor_em_dataframe(dataframe, valor):
     mask = dataframe['datetime'] == valor

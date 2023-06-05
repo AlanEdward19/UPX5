@@ -72,7 +72,7 @@ app.layout = html.Div([
         html.Div(id='table-container', style=styles['table-container'], children=[
             dash_table.DataTable(
                 id='invalid-data-table',
-                columns=[{"name": i, "id": i} for i in ['Barn [kW]','Dishwasher [kW]','Fridge [kW]','Furnace 1 [kW]','Furnace 2 [kW]','Garage door [kW]','Home office [kW]','House overall [kW]','Kitchen 12 [kW]','Kitchen 14 [kW]','Kitchen 38 [kW]','Living room [kW]','Microwave [kW]','Solar [kW]','Well [kW]','Wine cellar [kW]','apparentTemperature','datetime','dewPoint','gen [kW]','use [kW]']],
+                columns=[{"name": i, "id": i} for i in ['Barn [kW]','Dishwasher [kW]','Fridge [kW]','Furnace 1 [kW]','Furnace 2 [kW]','Garage door [kW]','Home office [kW]','House overall [kW]','Kitchen 12 [kW]','Kitchen 14 [kW]','Kitchen 38 [kW]','Living room [kW]','Microwave [kW]','Solar [kW]','Well [kW]','Wine cellar [kW]','datetime','gen [kW]','use [kW]']],
                 data=[],
             )
         ])
