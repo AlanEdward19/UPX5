@@ -63,38 +63,23 @@ def somar_uma_semana(valor):
     nova_data_hora = valor + timedelta(weeks=1)
     return nova_data_hora.strftime('%Y-%m-%d %H:%M:%S')
 
-def formatar_dataframeSemMerge(dataframe: pd.DataFrame) -> pd.DataFrame:
-    dataframe['time'] = pd.to_numeric(dataframe['time'], errors='coerce')
-    dataframe = dataframe[~dataframe['time'].isna()]
-
-    dataframe = corrigir_diferenca_tempo(dataframe)
-
-    dataframe = dataframe.drop(columns=['time', 'summary', 'icon', 'cloudCover'])
-
-    dataframe = dataframe.sort_index(axis=1)
-
-    return dataframe
-
 def formatar_dataframe(dataframe: pd.DataFrame) -> pd.DataFrame:
     dataframe['time'] = pd.to_numeric(dataframe['time'], errors='coerce')
     dataframe = dataframe[~dataframe['time'].isna()]
 
     dataframe = corrigir_diferenca_tempo(dataframe)
 
-    dataframe = dataframe.drop(columns=['time', 'summary', 'icon', 'cloudCover'])
+    dataframe = dataframe.drop(columns=['time', 'summary', 'icon', 'cloudCover','apparentTemperature','dewPoint','humidity','precipIntensity',
+                                        'precipProbability','pressure','temperature','visibility','windBearing','windSpeed'])
 
     dataframe = dataframe.sort_index(axis=1)
 
-    return merge_dataframe(dataframe)
-
-def tratar_dataframe(dataframe):
-    dataframe = formatar_dataframe(dataframe)
     return dataframe
 
 def achar_anomalias(dataframe):
-    df = tratar_dataframe(dataframe)
+    df = merge_dataframe(dataframe)
 
-    exclude_columns = ['apparentTemperature','datetime','dewPoint','humidity','precipIntensity','precipProbability','pressure','temperature','visibility','windBearing','windSpeed']
+    exclude_columns = ['datetime']
 
     X = df[[column for column in list(df.columns) if column not in exclude_columns]]
 
@@ -111,7 +96,7 @@ def achar_anomalias(dataframe):
     return anomaly
 
 def criar_grafico_e_tabela(csv):
-    dataframe = pd.read_csv(csv, delimiter=',', low_memory=False)
+    dataframe = formatar_dataframe(pd.read_csv(csv, delimiter=',', low_memory=False))
     anomalias = achar_anomalias(dataframe)
     graficos = AllAnomaliesGraph(dataframe, anomalias, 27, 0.5, 10)
 
@@ -121,8 +106,8 @@ def criar_grafico_e_tabela(csv):
     }
 
 def AllAnomaliesGraph(dataframe, anomaly, tamX: int, proporcao: int, quantidade: int = 0):
-    csv_original = formatar_dataframeSemMerge(dataframe)
-    size = len(csv_original.drop(['datetime','apparentTemperature','dewPoint','humidity','precipIntensity','precipProbability','pressure','temperature','visibility','windBearing','windSpeed'], axis=1).columns)
+    csv_original = dataframe
+    size = len(csv_original.drop(['datetime'], axis=1).columns)
     total_anomalias = len(anomaly.index)
 
     if quantidade == 0:
@@ -144,7 +129,7 @@ def AllAnomaliesGraph(dataframe, anomaly, tamX: int, proporcao: int, quantidade:
 
             if a is not None and b is not None:
                 df_temp = csv_original[a:b+1]
-                df_temp2 = df_temp.drop(['datetime','apparentTemperature','dewPoint','humidity','precipIntensity','precipProbability','pressure','temperature','visibility','windBearing','windSpeed'], axis=1)
+                df_temp2 = df_temp.drop(['datetime'], axis=1)
                 x = df_temp['datetime']
                 t = 0
                 for j in df_temp2.columns.tolist():
@@ -161,9 +146,11 @@ def AllAnomaliesGraph(dataframe, anomaly, tamX: int, proporcao: int, quantidade:
                 ax.set_xlabel('data')
                 ax.set_ylabel('KW')
 
-        ax.set_title('Intervalo de tempo de anomalia registrados de ' + str(start_date) + ' até ' + str(end_date))
-        ax.legend(df_temp2.columns.tolist())
-        plots.append(fig)
+        plots.append({
+            "fig": fig,
+            "title": 'Intervalo de tempo de anomalia registrados de ' + str(start_date) + ' até ' + str(end_date),
+            "legend": df_temp2.columns.tolist()
+        })
 
     return plots
 

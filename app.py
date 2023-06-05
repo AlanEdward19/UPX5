@@ -72,7 +72,7 @@ app.layout = html.Div([
         html.Div(id='table-container', style=styles['table-container'], children=[
             dash_table.DataTable(
                 id='invalid-data-table',
-                columns=[{"name": i, "id": i} for i in ['Barn [kW]','Dishwasher [kW]','Fridge [kW]','Furnace 1 [kW]','Furnace 2 [kW]','Garage door [kW]','Home office [kW]','House overall [kW]','Kitchen 12 [kW]','Kitchen 14 [kW]','Kitchen 38 [kW]','Living room [kW]','Microwave [kW]','Solar [kW]','Well [kW]','Wine cellar [kW]','apparentTemperature','datetime','dewPoint','gen [kW]','humidity','precipIntensity','precipProbability','pressure','temperature','use [kW]','visibility','windBearing','windSpeed','anomaly']],
+                columns=[{"name": i, "id": i} for i in ['Barn [kW]','Dishwasher [kW]','Fridge [kW]','Furnace 1 [kW]','Furnace 2 [kW]','Garage door [kW]','Home office [kW]','House overall [kW]','Kitchen 12 [kW]','Kitchen 14 [kW]','Kitchen 38 [kW]','Living room [kW]','Microwave [kW]','Solar [kW]','Well [kW]','Wine cellar [kW]','apparentTemperature','datetime','dewPoint','gen [kW]','use [kW]']],
                 data=[],
             )
         ])
@@ -97,15 +97,15 @@ def process_and_display_data(n_clicks, contents):
             # Exibir os gráficos com base nos dados processados
             graphs = []
             for i, grafico in enumerate(graficos):
-                if isinstance(grafico, plt.Figure):
+                if isinstance(grafico['fig'], plt.Figure):
                     fig = go.Figure()
-                    for ax in grafico.get_axes():
-                        for line in ax.get_lines():
-                            fig.add_trace(go.Scatter(x=line.get_xdata(), y=line.get_ydata(), name=line.get_label()))
+                    for ax in grafico['fig'].get_axes():
+                        for line, legend in zip(ax.get_lines(), grafico['legend']):
+                            fig.add_trace(go.Scatter(x=line.get_xdata(), y=line.get_ydata(), name=legend))
                     fig.update_layout(
-                        title=f'Gráfico {i+1}',
+                        title=grafico['title'],
                         xaxis_title='Data',
-                        yaxis_title='Gasto'
+                        yaxis_title='Gasto',
                     )
                     graphs.append(dcc.Graph(id=f'processed-data-graph-{i}', figure=fig, style=styles['graph']))
 
